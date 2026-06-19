@@ -187,3 +187,35 @@ class LEDController:
         finally:
             # Restore the original system trigger (e.g. heartbeat or mmc0)
             self.set_trigger(original_trigger)
+
+    def get_all_triggers(self) -> tuple[str, list[str]]:
+        """
+        Reads the trigger file and returns a tuple containing:
+        - The active trigger name (str)
+        - A list of all available trigger names (list of str)
+
+        Note for beginners:
+        - The file contains names separated by spaces, with the active one
+          enclosed in brackets, e.g. 'none [heartbeat] mmc0'.
+        - We clean the brackets to identify the active one, but keep the
+          names in the list of available triggers.
+
+        Returns:
+            tuple[str, list[str]]: (active_trigger, list_of_available_triggers)
+        """
+        with open(self.trigger_path, "r") as file:
+            content = file.read().strip()
+
+        triggers = content.split()
+        active_trigger = "none"
+        available_triggers = []
+
+        for trigger in triggers:
+            if trigger.startswith("[") and trigger.endswith("]"):
+                clean_name = trigger[1:-1]
+                active_trigger = clean_name
+                available_triggers.append(clean_name)
+            else:
+                available_triggers.append(trigger)
+
+        return active_trigger, available_triggers

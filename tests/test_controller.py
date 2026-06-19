@@ -187,6 +187,20 @@ class TestLEDController(unittest.TestCase):
         # 3 ON sleeps and 3 OFF sleeps = 6 total sleeps
         self.assertEqual(mock_sleep.call_count, 6)
 
+    def test_get_all_triggers(self) -> None:
+        """
+        Verifies get_all_triggers parses the active trigger and parses available triggers correctly.
+        """
+        mock_data = "none [heartbeat] mmc0 default-on"
+        m_open = mock_open(read_data=mock_data)
+
+        with patch("builtins.open", m_open):
+            active_trigger, available_triggers = self.controller.get_all_triggers()
+
+        self.assertEqual(active_trigger, "heartbeat")
+        self.assertEqual(available_triggers, ["none", "heartbeat", "mmc0", "default-on"])
+        m_open.assert_called_once_with(self.controller.trigger_path, "r")
+
 
 if __name__ == "__main__":
     unittest.main()

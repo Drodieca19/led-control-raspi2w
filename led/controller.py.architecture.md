@@ -18,6 +18,7 @@ graph TD
         status[read_status]
         get_trig[get_trigger]
         set_trig[set_trigger]
+        get_all_trig[get_all_triggers]
         blink[blink]
     end
     
@@ -62,6 +63,10 @@ graph TD
 ### `set_trigger(trigger_name: str) -> None`
 - **Inputs:** `trigger_name: str` (trigger name to write).
 - **Outputs:** None (Writes string to `trigger` file).
+
+### `get_all_triggers() -> tuple[str, list[str]]`
+- **Inputs:** None.
+- **Outputs:** `tuple[str, list[str]]` (the active trigger name and list of all available triggers).
 
 ### `blink(interval: float, count: int) -> None`
 - **Inputs:**

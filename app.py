@@ -56,7 +56,8 @@ def get_status():
     API Endpoint: Reads and returns the current state of the LED.
 
     Returns:
-        JSON response with the current brightness state ('ON' or 'OFF') and the active trigger.
+        JSON response with the current brightness state ('ON', 'OFF', or 'ACTIVE'),
+        the active trigger, and the list of available triggers.
     """
     # If the server is running without write permissions, return a JSON error
     if permission_error_message:
@@ -64,13 +65,20 @@ def get_status():
 
     try:
         brightness = controller.read_status()
-        active_trigger = controller.get_trigger()
-        status_text = "ON" if brightness > 0 else "OFF"
+        active_trigger, available_triggers = controller.get_all_triggers()
+
+        # If trigger is not "none", the LED is actively controlled by the kernel trigger
+        # (e.g. heartbeat, mmc0, default-on). In this case, we consider the LED active.
+        if active_trigger != "none":
+            status_text = "ON" if active_trigger == "default-on" else "ACTIVE"
+        else:
+            status_text = "ON" if brightness > 0 else "OFF"
 
         return jsonify({
             "status": status_text,
             "brightness": brightness,
-            "trigger": active_trigger
+            "trigger": active_trigger,
+            "available_triggers": available_triggers
         })
     except Exception as err:
         return jsonify({"error": f"Failed to read hardware state: {err}"}), 500

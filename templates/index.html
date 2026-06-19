@@ -417,18 +417,32 @@
                 ledText.textContent = data.status;
                 ledTriggerText.textContent = `trigger: ${data.trigger}`;
 
-                // Update visual bulb class
-                if (data.status === 'ON') {
+                // Update visual bulb class (glowing ON/ACTIVE, grayed OFF)
+                if (data.status === 'ON' || data.status === 'ACTIVE') {
                     ledBulb.className = 'led-indicator on';
                 } else {
                     ledBulb.className = 'led-indicator off';
                 }
 
-                // Highlight active trigger button
-                document.querySelectorAll('.btn-trigger').forEach(btn => btn.classList.remove('active'));
-                const activeBtn = document.getElementById(`trig-${data.trigger}`);
-                if (activeBtn) {
-                    activeBtn.classList.add('active');
+                // Dynamically build and highlight OS trigger buttons from API data
+                const triggerGrid = document.getElementById('trigger-grid');
+                if (triggerGrid && data.available_triggers) {
+                    triggerGrid.innerHTML = ''; // Clear current buttons
+                    
+                    data.available_triggers.forEach(trig => {
+                        const btn = document.createElement('button');
+                        btn.className = 'btn-trigger';
+                        btn.textContent = trig;
+                        
+                        // Highlight if this trigger is the currently active one
+                        if (trig === data.trigger) {
+                            btn.classList.add('active');
+                        }
+                        
+                        // Add action handler for button click
+                        btn.onclick = () => setTrigger(trig);
+                        triggerGrid.appendChild(btn);
+                    });
                 }
             } catch (err) {
                 showError(err.message);

@@ -21,7 +21,7 @@ graph TD
     
     index -->|Renders| template[templates/index.html]
     get_status -->|Invokes| status[LEDController.read_status]
-    get_status -->|Invokes| get_trig[LEDController.get_trigger]
+    get_status -->|Invokes| get_all_trigs[LEDController.get_all_triggers]
     
     turn_on -->|Invokes| on[LEDController.turn_on]
     turn_off -->|Invokes| off[LEDController.turn_off]
@@ -39,7 +39,7 @@ graph TD
 
 ### `get_status() -> Response`
 - **Inputs:** None.
-- **Outputs:** JSON Response `{"status": "ON"|"OFF", "brightness": int, "trigger": str}`.
+- **Outputs:** JSON Response `{"status": "ON"|"OFF"|"ACTIVE", "brightness": int, "trigger": str, "available_triggers": list[str]}`.
 
 ### `turn_on() -> Response`
 - **Inputs:** None.

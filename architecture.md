@@ -58,6 +58,7 @@ flowchart TD
         I[LEDController.set_trigger]
         J[LEDController.get_trigger]
         K[LEDController.blink]
+        L[LEDController.get_all_triggers]
     end
 
     A -->|1. Resolves path| C
@@ -73,7 +74,7 @@ flowchart TD
     route_status -->|Check path| C
     route_status -->|Check permissions| E
     route_status -->|Read status| H
-    route_status -->|Read active trigger| J
+    route_status -->|Read active and available triggers| L
     
     route_on -->|Turn LED ON| F
     route_off -->|Turn LED OFF| G
@@ -100,8 +101,9 @@ flowchart TD
 | `LEDController.read_status()` | None | `int` (Brightness level, e.g. `0` or `1`) | Reads value from physical `brightness` file. |
 | `LEDController.set_trigger(name)` | `trigger_name: str` | Writes trigger to `trigger` file | Alters operating system LED behavior. |
 | `LEDController.get_trigger()` | None | `str` (Active trigger mode) | Reads trigger list and identifies active trigger. |
+| `LEDController.get_all_triggers()` | None | `tuple[str, list[str]]` (Active trigger and list of available triggers) | Reads trigger list, extracts active trigger, and returns list. |
 | `LEDController.blink(interval, count)` | `interval: float`, `count: int` | Flashes LED, restores original trigger on finish/interrupt | Blinks physical LED repeatedly. |
-| `GET /api/led/status` | None | JSON `{"status": "ON"\|"OFF", "brightness": int, "trigger": str}` | Returns the active hardware status to the web frontend. |
+| `GET /api/led/status` | None | JSON `{"status": "ON"\|"OFF"\|"ACTIVE", "brightness": int, "trigger": str, "available_triggers": list[str]}` | Returns the active hardware status and triggers to the web frontend. |
 | `POST /api/led/on` / `off` | None | JSON `{"success": true, "message": str}` | Rest API endpoints executing state toggles. |
 | `POST /api/led/trigger` | JSON `{"name": str}` | JSON status | Rest API endpoint setting kernel triggers. |
 | `POST /api/led/blink` | JSON `{"delay": float, "count": int}` | JSON status | Rest API endpoint performing blink loops. |

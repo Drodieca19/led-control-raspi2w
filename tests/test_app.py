@@ -48,22 +48,72 @@ class TestFlaskWebApp(unittest.TestCase):
         self.assertIn("DietPi LED Controller Dashboard", html_content)
 
     @patch("app.controller.read_status")
-    @patch("app.controller.get_trigger")
-    def test_api_status(self, mock_get_trig: MagicMock, mock_read_status: MagicMock) -> None:
+    @patch("app.controller.get_all_triggers")
+    def test_api_status_active_trigger(self, mock_get_all_trigs: MagicMock, mock_read_status: MagicMock) -> None:
         """
-        Verifies GET /api/led/status returns status, brightness and trigger JSON.
+        Verifies GET /api/led/status returns status 'ACTIVE' when a kernel trigger like heartbeat is set.
         """
-        mock_read_status.return_value = 1
-        mock_get_trig.return_value = "heartbeat"
+        mock_read_status.return_value = 0
+        mock_get_all_trigs.return_value = ("heartbeat", ["none", "heartbeat", "mmc0"])
 
         response = self.client.get("/api/led/status")
         self.assertEqual(response.status_code, 200)
 
-        # Parse JSON output from the response
+        data = json.loads(response.data)
+        self.assertEqual(data["status"], "ACTIVE")
+        self.assertEqual(data["brightness"], 0)
+        self.assertEqual(data["trigger"], "heartbeat")
+        self.assertEqual(data["available_triggers"], ["none", "heartbeat", "mmc0"])
+
+    @patch("app.controller.read_status")
+    @patch("app.controller.get_all_triggers")
+    def test_api_status_default_on_trigger(self, mock_get_all_trigs: MagicMock, mock_read_status: MagicMock) -> None:
+        """
+        Verifies GET /api/led/status returns status 'ON' when default-on trigger is set.
+        """
+        mock_read_status.return_value = 0
+        mock_get_all_trigs.return_value = ("default-on", ["none", "default-on"])
+
+        response = self.client.get("/api/led/status")
+        self.assertEqual(response.status_code, 200)
+
+        data = json.loads(response.data)
+        self.assertEqual(data["status"], "ON")
+        self.assertEqual(data["trigger"], "default-on")
+
+    @patch("app.controller.read_status")
+    @patch("app.controller.get_all_triggers")
+    def test_api_status_manual_on(self, mock_get_all_trigs: MagicMock, mock_read_status: MagicMock) -> None:
+        """
+        Verifies GET /api/led/status returns status 'ON' when trigger is 'none' and brightness > 0.
+        """
+        mock_read_status.return_value = 1
+        mock_get_all_trigs.return_value = ("none", ["none", "heartbeat", "mmc0"])
+
+        response = self.client.get("/api/led/status")
+        self.assertEqual(response.status_code, 200)
+
         data = json.loads(response.data)
         self.assertEqual(data["status"], "ON")
         self.assertEqual(data["brightness"], 1)
-        self.assertEqual(data["trigger"], "heartbeat")
+        self.assertEqual(data["trigger"], "none")
+
+    @patch("app.controller.read_status")
+    @patch("app.controller.get_all_triggers")
+    def test_api_status_manual_off(self, mock_get_all_trigs: MagicMock, mock_read_status: MagicMock) -> None:
+        """
+        Verifies GET /api/led/status returns status 'OFF' when trigger is 'none' and brightness is 0.
+        """
+        mock_read_status.return_value = 0
+        mock_get_all_trigs.return_value = ("none", ["none", "heartbeat", "mmc0"])
+
+        response = self.client.get("/api/led/status")
+        self.assertEqual(response.status_code, 200)
+
+        data = json.loads(response.data)
+        self.assertEqual(data["status"], "OFF")
+        self.assertEqual(data["brightness"], 0)
+        self.assertEqual(data["trigger"], "none")
 
     @patch("app.controller.turn_on")
     def test_api_turn_on(self, mock_turn_on: MagicMock) -> None:

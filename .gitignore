@@ -3,6 +3,7 @@ __pycache__/
 *.pyc
 .env
 .agents/
+AGENTS.md
 .idea/
 .vscode/
 *.swp
