@@ -1,13 +1,14 @@
 # Raspberry Pi Zero 2W LED Controller
 
-An educational, dependency-free Python project to programmatically control the onboard activity (ACT) LED of a Raspberry Pi Zero 2W running DietPi (or other Debian-based operating systems) via standard Linux `sysfs` driver nodes.
+An educational Python project to programmatically control the onboard activity (ACT) LED of a Raspberry Pi Zero 2W running DietPi (or other Debian-based operating systems) via standard Linux `sysfs` driver nodes, featuring both a CLI utility and a modern Flask-based Web Dashboard.
 
 ---
 
 ## Key Features
 
 - **Direct Hardware Control:** Interfaces with system trigger and brightness file nodes without requiring compile-heavy GPIO libraries.
-- **Zero External Dependencies:** Built entirely with Python's standard library (`argparse`, `os`, `sys`, `time`, `signal`).
+- **Micro Web Interface:** Includes a responsive web GUI built with Flask to control your Pi Zero 2W remotely from any device.
+- **Zero Heavy External Dependencies:** The core hardware control uses only Python's standard library. The web interface is built using standard lightweight Flask.
 - **Safety Features:** Automatically backs up and restores original hardware trigger settings during execution and handles system interruptions (Ctrl+C) gracefully.
 - **Educational Annotations:** Code is written to be beginner-friendly with detailed inline notes explaining how built-in modules, context managers, and exception systems work.
 - **Hierarchical Documentation:** Features a structured architecture breakdown (global and module-specific diagrams).
@@ -20,15 +21,21 @@ An educational, dependency-free Python project to programmatically control the o
 rpi-led-controller/
 ├── config.py                 # Resolves LED directory paths from env/arguments
 ├── cli.py                    # Entry point mapping shell commands using argparse
+├── app.py                    # Flask Web Server API entry point
+├── requirements.txt          # Python dependencies list
 ├── architecture.md           # Global system design and data-flow diagrams
 │
 ├── led/
 │   ├── __init__.py
 │   └── controller.py         # Interfaces with /sys/class/leds/ACT control files
 │
+├── templates/
+│   └── index.html            # Web GUI dashboard template (HTML/CSS/JS)
+│
 └── tests/
     ├── __init__.py
-    └── test_controller.py    # Mock tests run safely without physical hardware
+    ├── test_controller.py    # Mock tests for the hardware controller
+    └── test_app.py           # Mock tests validating Flask web routing endpoints
 ```
 
 ---
@@ -40,11 +47,15 @@ rpi-led-controller/
    ```bash
    python --version
    ```
-3. Since modifying kernel `sysfs` files requires root permissions, you must run commands with **sudo**.
+3. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+4. Since modifying kernel `sysfs` files requires root permissions, you must run commands with **sudo**.
 
 ---
 
-## Usage Guide
+## Usage Guide (Command Line)
 
 The CLI exposes five subcommands: `on`, `off`, `status`, `trigger`, and `blink`.
 
@@ -56,8 +67,8 @@ sudo python cli.py status
 
 ### 2. Manual On/Off
 ```bash
-sudo python cli.py on
-sudo python cli.py off
+sudo python python cli.py on
+sudo python python cli.py off
 ```
 
 ### 3. Change System Trigger
@@ -91,10 +102,35 @@ sudo -E python cli.py status
 
 ---
 
+## Web GUI Dashboard (Flask Server)
+
+You can launch a lightweight, premium web dashboard to control the LED remotely from any web browser on your network.
+
+### 1. Start the Server
+```bash
+sudo python app.py
+```
+*(By default, the server starts on port `8000` and binds to `0.0.0.0` so it is accessible from your network).*
+
+### 2. Open in Browser
+Open your browser and navigate to:
+```text
+http://<your-raspberry-pi-ip>:8000
+```
+Example: `http://192.168.1.15:8000` or `http://dietpi.local:8000`
+
+### 3. Features of the Web Interface
+- **Real-time Status Sync:** The dashboard automatically updates every 4 seconds (important if system triggers like `heartbeat` or disk activity are writing to the LED).
+- **Graceful Error Alerts:** If you run the web server without root/sudo privileges, the interface stays responsive and displays a visual warning banner instructing how to execute it with `sudo`.
+- **Fully Responsive Design:** The interface works beautifully on both desktop and mobile screens.
+
+---
+
 ## Running Unit Tests
 Tests simulate sysfs file reads, writes, permissions, and delays to run safely on any computer (no Raspberry Pi required):
 ```bash
-python -m unittest tests/test_controller.py
+# Run all tests
+python -m unittest discover -s tests -p "test_*.py"
 ```
 
 ---
@@ -104,3 +140,5 @@ This codebase follows a strict separation of concerns. You can explore the archi
 - **System Call Design:** [architecture.md](file:///c:/Proyectos/Axel/ProyectoSkillsCursoIA/architecture.md)
 - **Controller Module Architecture:** [led/controller.py.architecture.md](file:///c:/Proyectos/Axel/ProyectoSkillsCursoIA/led/controller.py.architecture.md)
 - **CLI Interface Architecture:** [cli.py.architecture.md](file:///c:/Proyectos/Axel/ProyectoSkillsCursoIA/cli.py.architecture.md)
+- **Web App Server Architecture:** [app.py.architecture.md](file:///c:/Proyectos/Axel/ProyectoSkillsCursoIA/app.py.architecture.md)
+- **Web App Tests Architecture:** [tests/test_app.py.architecture.md](file:///c:/Proyectos/Axel/ProyectoSkillsCursoIA/tests/test_app.py.architecture.md)

@@ -56,3 +56,29 @@ This document lists the atomic, ordered, and traceable tasks required to impleme
   - Tests verify configurations, permission checks, state changes, and blinking sequences by mocking file accesses.
   - Suite passes cleanly when running `python -m unittest tests/test_controller.py`.
 - **Dependencies:** T-05.
+
+### [x] T-07: Configure Web GUI Dependencies & HTML Template
+- **Description:** Create `requirements.txt` declaring `flask` dependency and implement `templates/index.html` with modern dark glassmorphic styling and JavaScript native `fetch()` connection handlers.
+- **Traceability:** `[RF-07]`, `[RNF-07]`
+- **Acceptance Criteria:**
+  - `requirements.txt` declares `flask>=3.0.0`.
+  - `templates/index.html` renders controls for on/off, blink parameters, OS triggers, status indicators, and displays error messages correctly.
+- **Dependencies:** T-05.
+
+### [x] T-08: Implement Flask Server Routes & Web Controller API
+- **Description:** Implement `app.py` server initializing Flask routing structures, serving index HTML, and translation of API queries (GET/POST status, toggles, trigger changes, blink loops) to the controller.
+- **Traceability:** `[RF-08]`, `[RNF-06]`
+- **Acceptance Criteria:**
+  - Running `python app.py` starts Flask server bound to port 8000.
+  - REST endpoints (`/api/led/status`, `/api/led/on`, `/api/led/off`, `/api/led/trigger`, `/api/led/blink`) correctly process requests and return JSON.
+  - Missing write permissions (root/sudo) are handled gracefully by returning a `403 Forbidden` JSON error rather than crashing on launch.
+- **Dependencies:** T-07.
+
+### [x] T-09: Add Web Routing Unit Tests
+- **Description:** Implement Flask test client routes coverage inside `tests/test_app.py`.
+- **Traceability:** `[RNF-06]`, `[RNF-04]`
+- **Acceptance Criteria:**
+  - `tests/test_app.py` passes all unit tests validating GET/POST routes and JSON return payloads.
+  - Tests pass cleanly when running `python -m unittest tests/test_app.py`.
+- **Dependencies:** T-08.
+

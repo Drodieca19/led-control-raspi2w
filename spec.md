@@ -26,6 +26,8 @@ This project provides a simple, educational Python utility using standard Linux 
 - **[RF-04] Trigger Configuration:** The program must allow setting the LED's trigger mode (e.g., `none` to control manually, `heartbeat` for pulse pattern, or `mmc0` for disk activity).
 - **[RF-05] CLI Interface:** The program must provide a Command Line Interface (CLI) using Python's standard library (`argparse`) to invoke all commands (e.g., `on`, `off`, `status`, `blink`, `trigger`).
 - **[RF-06] Configuration Customization:** The system must use `/sys/class/leds/ACT` as the default directory path, but support overriding it via environment variables or CLI arguments.
+- **[RF-07] Web Dashboard:** The system must serve a responsive web-based GUI (dashboard) to control the LED remotely.
+- **[RF-08] REST API Endpoints:** The system must expose JSON API endpoints for remote toggle, status query, trigger changes, and blink cycles.
 
 ---
 
@@ -36,6 +38,8 @@ This project provides a simple, educational Python utility using standard Linux 
 - **[RNF-03] Root Privilege Safety:** The program must run with root/sudo privileges. It must check for write permissions to the LED file descriptor and raise a clear, beginner-friendly error if root/sudo privileges are missing.
 - **[RNF-04] Educational and Beginner-Friendly:** The source code must be simple, readable, and fully documented, explaining Python built-in functions (e.g., file context managers `with`, `sys.argv`, etc.).
 - **[RNF-05] Clean Resource Cleanup:** In case of errors or SIGINT (Ctrl+C) during blinking, the program must restore the LED trigger and state to its original values before exiting.
+- **[RNF-06] Flask Web Server:** The web interface must be built using Flask, running on port 8000 by default (customizable via parameters).
+- **[RNF-07] Responsive Dashboard Design:** The web page must be styled with modern CSS, showing the active trigger, brightness status, and control inputs.
 
 ---
 
@@ -55,6 +59,10 @@ This project provides a simple, educational Python utility using standard Linux 
 | [RF-04] | T-04 | Trigger Control | Completed |
 | [RF-05] | T-05 | CLI Interface | Completed |
 | [RF-06] | T-01 | Configuration Customization | Completed |
+| [RF-07] | T-07 | Web Dashboard | Completed |
+| [RF-08] | T-08 | REST API Endpoints | Completed |
 | [RNF-03] | T-02 | Root Privilege Check | Completed |
-| [RNF-04] | T-01, T-02, T-03, T-04, T-05, T-06 | Educational Standard | Completed |
+| [RNF-04] | T-01, T-02, T-03, T-04, T-05, T-06, T-09 | Educational Standard | Completed |
 | [RNF-05] | T-04 | Graceful Cleanup | Completed |
+| [RNF-06] | T-08 | Flask Web Server | Completed |
+| [RNF-07] | T-07 | Responsive Dashboard Design | Completed |

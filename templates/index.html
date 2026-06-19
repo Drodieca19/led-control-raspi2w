@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DietPi LED Controller Dashboard</title>
+    <!-- Modern Premium Typography: Google Fonts (Inter) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Modern CSS Custom Properties (Design System Tokens) */
+        :root {
+            --bg-color: #0f172a; /* Slate 900 */
+            --card-bg: rgba(30, 41, 59, 0.7); /* Slate 800 with transparency for glassmorphism */
+            --card-border: rgba(255, 255, 255, 0.08);
+            
+            /* Curated Color Palettes (Rich HSL/Gradients) */
+            --primary-glow: linear-gradient(135deg, #6366f1, #a855f7); /* Indigo to Purple */
+            --led-on-glow: radial-gradient(circle, #22c55e 0%, rgba(34, 197, 94, 0.2) 70%);
+            --led-off-glow: radial-gradient(circle, #64748b 0%, rgba(100, 116, 139, 0.1) 70%);
+            
+            --text-main: #f8fafc; /* Slate 50 */
+            --text-muted: #94a3b8; /* Slate 400 */
+            
+            --success: #22c55e;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        /* Base resets and body styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            /* Smooth background animation */
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.15) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        /* Glassmorphism Container Card */
+        .dashboard-container {
+            width: 100%;
+            max-width: 600px;
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        /* Header Style */
+        header {
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            background: var(--primary-glow);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        /* Hardware LED Visual Indicator */
+        .led-status-card {
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .led-indicator {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin-bottom: 15px;
+            transition: all 0.5s ease-in-out;
+            box-shadow: 0 0 20px rgba(100, 116, 139, 0.1);
+        }
+
+        /* Active / Inactive states for the LED */
+        .led-indicator.on {
+            background: #22c55e;
+            box-shadow: 0 0 35px rgba(34, 197, 94, 0.6), 0 0 70px rgba(34, 197, 94, 0.3);
+            animation: glow-pulse 2s infinite ease-in-out;
+        }
+
+        .led-indicator.off {
+            background: #475569;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .led-indicator.blinking {
+            background: #f59e0b;
+            box-shadow: 0 0 35px rgba(245, 158, 11, 0.6), 0 0 70px rgba(245, 158, 11, 0.3);
+            animation: fast-pulse 0.4s infinite alternate;
+        }
+
+        .led-label {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .trigger-badge {
+            font-size: 0.8rem;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 4px 12px;
+            border-radius: 12px;
+            color: var(--text-muted);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        /* Control Panel Blocks */
+        .section-title {
+            text-align: left;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin: 24px 0 12px 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Button Grid for Power Control */
+        .power-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        /* General Button Styling with micro-interactions */
+        .btn {
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 0.95rem;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            color: var(--text-main);
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-on {
+            background: linear-gradient(135deg, #10b981, #059669); /* Emerald gradient */
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-on:hover {
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-off {
+            background: linear-gradient(135deg, #ef4444, #dc2626); /* Crimson gradient */
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-off:hover {
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+        }
+
+        /* Trigger Selector Layout */
+        .trigger-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 10px;
+        }
+
+        .btn-trigger {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.85rem;
+            padding: 10px 12px;
+            border-radius: 10px;
+        }
+
+        .btn-trigger:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-trigger.active {
+            background: var(--primary-glow);
+            border-color: transparent;
+            box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
+        }
+
+        /* Blink Panel Styling */
+        .blink-panel {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 16px;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            text-align: left;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .input-group label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .input-field {
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 10px;
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: 0.9rem;
+            width: 100%;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .input-field:focus {
+            border-color: #a855f7;
+        }
+
+        .btn-blink {
+            grid-column: span 2;
+            background: var(--primary-glow);
+            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);
+        }
+
+        .btn-blink:hover {
+            box-shadow: 0 6px 20px rgba(168, 85, 247, 0.4);
+        }
+
+        /* Error/Info Alerts */
+        .alert {
+            display: none;
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 24px;
+            color: #fca5a5;
+            font-size: 0.85rem;
+            text-align: left;
+            line-height: 1.4;
+        }
+
+        /* Animations */
+        @keyframes glow-pulse {
+            0% {
+                box-shadow: 0 0 20px rgba(34, 197, 94, 0.4), 0 0 40px rgba(34, 197, 94, 0.2);
+            }
+            50% {
+                box-shadow: 0 0 35px rgba(34, 197, 94, 0.7), 0 0 70px rgba(34, 197, 94, 0.4);
+            }
+            100% {
+                box-shadow: 0 0 20px rgba(34, 197, 94, 0.4), 0 0 40px rgba(34, 197, 94, 0.2);
+            }
+        }
+
+        @keyframes fast-pulse {
+            from {
+                box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+            }
+            to {
+                box-shadow: 0 0 40px rgba(245, 158, 11, 0.8), 0 0 80px rgba(245, 158, 11, 0.4);
+            }
+        }
+
+        /* Responsive Layout Adjustments */
+        @media(max-width: 480px) {
+            .dashboard-container {
+                padding: 24px;
+            }
+            .blink-panel {
+                grid-template-columns: 1fr;
+            }
+            .btn-blink {
+                grid-column: span 1;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-container">
+        <!-- Header Info -->
+        <header>
+            <h1>LED Dashboard</h1>
+            <div class="subtitle">Raspberry Pi Zero 2W Controller (DietPi)</div>
+        </header>
+
+        <!-- Dynamic Status Section -->
+        <div class="led-status-card">
+            <div id="led-bulb" class="led-indicator off"></div>
+            <div class="led-label" id="led-status-text">OFF</div>
+            <div class="trigger-badge" id="led-trigger-text">trigger: none</div>
+        </div>
+
+        <!-- Power Controls -->
+        <h2 class="section-title">Manual Control</h2>
+        <div class="power-controls">
+            <button class="btn btn-on" onclick="setPower(true)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18.36 6.64a9 9 0 1 1-12.73 0M12 2v10"/></svg>
+                Turn ON
+            </button>
+            <button class="btn btn-off" onclick="setPower(false)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/></svg>
+                Turn OFF
+            </button>
+        </div>
+
+        <!-- Blinking Panel -->
+        <h2 class="section-title">Blinking Mode</h2>
+        <div class="blink-panel">
+            <div class="input-group">
+                <label for="blink-delay">Delay (seconds)</label>
+                <input type="number" id="blink-delay" class="input-field" step="0.1" min="0.1" value="0.5">
+            </div>
+            <div class="input-group">
+                <label for="blink-count">Flashes count</label>
+                <input type="number" id="blink-count" class="input-field" min="1" value="5">
+            </div>
+            <button class="btn btn-blink" onclick="triggerBlink()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                Start Blinking
+            </button>
+        </div>
+
+        <!-- System Kernel Triggers -->
+        <h2 class="section-title">OS Triggers</h2>
+        <div class="trigger-controls" id="trigger-grid">
+            <button class="btn-trigger" id="trig-none" onclick="setTrigger('none')">none</button>
+            <button class="btn-trigger" id="trig-heartbeat" onclick="setTrigger('heartbeat')">heartbeat</button>
+            <button class="btn-trigger" id="trig-mmc0" onclick="setTrigger('mmc0')">mmc0 (Disk)</button>
+            <button class="btn-trigger" id="trig-default-on" onclick="setTrigger('default-on')">default-on</button>
+        </div>
+
+        <!-- Error Tip Panel -->
+        <div class="alert" id="error-alert"></div>
+    </div>
+
+    <!-- JavaScript REST API Connector -->
+    <script>
+        // DOM Element references
+        const ledBulb = document.getElementById('led-bulb');
+        const ledText = document.getElementById('led-status-text');
+        const ledTriggerText = document.getElementById('led-trigger-text');
+        const errorAlert = document.getElementById('error-alert');
+
+        /**
+         * Fetch current state from Python API and update the visual interface.
+         */
+        async function fetchStatus() {
+            try {
+                const response = await fetch('/api/led/status');
+                if (!response.ok) {
+                    const errData = await response.json();
+                    throw new Error(errData.error || 'Server error');
+                }
+                
+                const data = await response.json();
+                
+                // Hide alert if successful
+                errorAlert.style.display = 'none';
+
+                // Update text
+                ledText.textContent = data.status;
+                ledTriggerText.textContent = `trigger: ${data.trigger}`;
+
+                // Update visual bulb class
+                if (data.status === 'ON') {
+                    ledBulb.className = 'led-indicator on';
+                } else {
+                    ledBulb.className = 'led-indicator off';
+                }
+
+                // Highlight active trigger button
+                document.querySelectorAll('.btn-trigger').forEach(btn => btn.classList.remove('active'));
+                const activeBtn = document.getElementById(`trig-${data.trigger}`);
+                if (activeBtn) {
+                    activeBtn.classList.add('active');
+                }
+            } catch (err) {
+                showError(err.message);
+            }
+        }
+
+        /**
+         * Triggers power changes (ON/OFF) via API.
+         */
+        async function setPower(turnOn) {
+            const url = turnOn ? '/api/led/on' : '/api/led/off';
+            try {
+                const response = await fetch(url, { method: 'POST' });
+                if (!response.ok) {
+                    const errData = await response.json();
+                    throw new Error(errData.error || 'Failed to update power');
+                }
+                await fetchStatus();
+            } catch (err) {
+                showError(err.message);
+            }
+        }
+
+        /**
+         * Changes kernel trigger.
+         */
+        async function setTrigger(name) {
+            try {
+                const response = await fetch('/api/led/trigger', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: name })
+                });
+                if (!response.ok) {
+                    const errData = await response.json();
+                    throw new Error(errData.error || 'Failed to update trigger');
+                }
+                await fetchStatus();
+            } catch (err) {
+                showError(err.message);
+            }
+        }
+
+        /**
+         * Triggers blinking cycle.
+         */
+        async function triggerBlink() {
+            const delay = parseFloat(document.getElementById('blink-delay').value);
+            const count = parseInt(document.getElementById('blink-count').value);
+
+            if (isNaN(delay) || delay <= 0 || isNaN(count) || count <= 0) {
+                showError("Please enter positive numeric values for delay and count.");
+                return;
+            }
+
+            // Set visual bulb to blinking style during execution
+            ledBulb.className = 'led-indicator blinking';
+            ledText.textContent = 'BLINKING...';
+
+            try {
+                const response = await fetch('/api/led/blink', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ delay: delay, count: count })
+                });
+                if (!response.ok) {
+                    const errData = await response.json();
+                    throw new Error(errData.error || 'Failed to blink');
+                }
+            } catch (err) {
+                showError(err.message);
+            } finally {
+                // Fetch the real status after cycle completes
+                await fetchStatus();
+            }
+        }
+
+        /**
+         * Displays educational/permissions tips in a clean red alert box.
+         */
+        function showError(message) {
+            errorAlert.textContent = message;
+            errorAlert.style.display = 'block';
+        }
+
+        // Run initial status check on load
+        fetchStatus();
+
+        // Periodically poll status every 4 seconds to sync if OS trigger is active (e.g. heartbeat)
+        setInterval(fetchStatus, 4000);
+    </script>
+</body>
+</html>
