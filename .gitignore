@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+.agents/
+.idea/
+.vscode/
+*.swp
+*.tmp
