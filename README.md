@@ -104,13 +104,18 @@ sudo -E python cli.py status
 
 ## Web GUI Dashboard (Flask Server)
 
-You can launch a lightweight, premium web dashboard to control the LED remotely from any web browser on your network.
+You can launch a lightweight, premium web dashboard to control the LED remotely from any web browser on your network using the automated helper script:
 
-### 1. Start the Server
+### 1. Run the Startup Script
+The project includes a `start.sh` script that automatically creates a virtual environment, installs requirements, and runs the server with root privileges:
 ```bash
-sudo python app.py
+# Make the script executable
+chmod +x start.sh
+
+# Run the startup automation
+./start.sh
 ```
-*(By default, the server starts on port `8000` and binds to `0.0.0.0` so it is accessible from your network).*
+*(Note: If the script fails during environment creation, you may need to install the venv packages: `sudo apt update && sudo apt install -y python3-venv`)*
 
 ### 2. Open in Browser
 Open your browser and navigate to:
